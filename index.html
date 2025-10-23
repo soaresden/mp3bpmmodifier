@@ -269,8 +269,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/FFmpeg.js"></script>
     <script>
-        const { FFmpeg, fetchFile } = FFmpeg;
-
+        let FFmpegLib;
+        let fetchFileLib;
         let ffmpeg;
         let ffLoaded = false;
         let files = [];
@@ -288,7 +288,21 @@
             if (ffLoaded) return true;
 
             try {
-                ffmpeg = new FFmpeg.FFmpeg();
+                // Attendre que FFmpeg soit disponible
+                let attempts = 0;
+                while (!window.FFmpeg && attempts < 30) {
+                    await new Promise(r => setTimeout(r, 100));
+                    attempts++;
+                }
+
+                if (!window.FFmpeg) {
+                    throw new Error('FFmpeg n\'a pas pu charger');
+                }
+
+                FFmpegLib = window.FFmpeg.FFmpeg;
+                fetchFileLib = window.FFmpeg.fetchFile;
+
+                ffmpeg = new FFmpegLib();
                 await ffmpeg.load();
                 ffLoaded = true;
                 console.log('✓ FFmpeg chargé');
@@ -391,7 +405,7 @@
                     const inputName = `in_${i}.${ext}`;
                     const outputName = `out_${i}.mp3`;
 
-                    await ffmpeg.FS('writeFile', inputName, await fetchFile(file));
+                    await ffmpeg.FS('writeFile', inputName, await fetchFileLib(file));
 
                     await ffmpeg.run(
                         '-i', inputName,
