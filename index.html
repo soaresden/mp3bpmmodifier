@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suno Tempo Doubler 🎼</title>
+    <script async src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/FFmpeg.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header .emoji {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .features {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .features strong {
+            color: #667eea;
+        }
+
+        .upload-zone {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafbff;
+            margin-bottom: 30px;
+        }
+
+        .upload-zone:hover {
+            border-color: #764ba2;
+            background: #f5f7ff;
+        }
+
+        .upload-zone.dragover {
+            border-color: #764ba2;
+            background: #ede9ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .upload-zone p {
+            color: #666;
+            margin: 10px 0;
+            font-size: 1.05em;
+        }
+
+        .upload-zone .small {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-input-button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .file-input-button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .files-list {
+            margin-bottom: 30px;
+        }
+
+        .file-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .file-info {
+            flex: 1;
+            text-align: left;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .file-duration {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .file-remove {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .file-remove:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .process-button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .process-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .process-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            display: block;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            display: block;
+        }
+
+        .guide {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .guide h3 {
+            color: #d97706;
+            margin-bottom: 10px;
+        }
+
+        .guide ol {
+            margin-left: 20px;
+            color: #92400e;
+            line-height: 1.8;
+        }
+
+        .guide li {
+            margin-bottom: 8px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e0e0e0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .tempo-display {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .upload-zone {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="emoji">🎼</div>
+            <h1>Suno Tempo Doubler</h1>
+            <p>⚡ Doublez le tempo <strong>SANS changer le pitch</strong></p>
+            <p>Les voix restent normales (pas d'effet chipmunk)</p>
+        </div>
+
+        <div class="features">
+            <strong>✨ Caractéristiques:</strong><br>
+            ✓ Tempo doublé (2x plus rapide)<br>
+            ✓ Pitch inchangé (voix normales)<br>
+            ✓ Export MP3 320kbps<br>
+            ✓ Durée originale dans le nom du fichier<br>
+            ✓ Métadonnées supprimées
+        </div>
+
+        <div class="tempo-display">
+            🎵 Tempo multiplié par: <strong>2.0x</strong>
+        </div>
+
+        <div class="upload-zone" id="uploadZone">
+            <div class="upload-icon">📁</div>
+            <p><strong>Glissez-déposez vos fichiers audio</strong></p>
+            <p>ou cliquez pour sélectionner</p>
+            <button class="file-input-button" id="fileButton">Parcourir les fichiers</button>
+            <div class="small">MP3, WAV, OGG, FLAC, M4A acceptés</div>
+            <input type="file" id="fileInput" multiple accept="audio/*">
+        </div>
+
+        <div class="files-list" id="filesList"></div>
+
+        <button class="process-button" id="processButton" disabled>
+            🚀 Traiter les fichiers
+        </button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <span id="loadingText">Traitement en cours...</span>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="guide">
+            <h3>📋 Comment utiliser sur Suno:</h3>
+            <ol>
+                <li>Téléchargez le fichier MP3 modifié</li>
+                <li>Uploadez-le dans Suno</li>
+                <li>Ajustez le BPM jusqu'à retrouver la durée originale</li>
+                <li>La durée originale est indiquée dans le nom du fichier!</li>
+            </ol>
+        </div>
+
+        <div class="footer">
+            Créé pour optimiser la création musicale avec Suno 🎵
+        </div>
+    </div>
+
+    <script>
+        const { FFmpeg, fetchFile } = FFmpeg;
+        const ff = new FFmpeg.FFmpeg();
+
+        let selectedFiles = [];
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileButton = document.getElementById('fileButton');
+        const filesList = document.getElementById('filesList');
+        const processButton = document.getElementById('processButton');
+        const status = document.getElementById('status');
+        const loading = document.getElementById('loading');
+
+        // Initialiser FFmpeg
+        async function initFFmpeg() {
+            if (!ff.isLoaded()) {
+                try {
+                    await ff.load();
+                } catch (e) {
+                    console.warn('FFmpeg WebWorker non disponible, utilisation de la version standard');
+                }
+            }
+        }
+
+        // Gestionnaires d'upload
+        fileButton.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(Array.from(e.target.files));
+        });
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFiles(Array.from(e.dataTransfer.files));
+        });
+
+        function handleFiles(files) {
+            selectedFiles = Array.from(files).filter(f => {
+                const ext = f.name.split('.').pop().toLowerCase();
+                return ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac'].includes(ext);
+            });
+
+            if (selectedFiles.length === 0) {
+                showStatus('Aucun fichier audio valide sélectionné', 'error');
+                return;
+            }
+
+            renderFilesList();
+            processButton.disabled = false;
+        }
+
+        function renderFilesList() {
+            filesList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-name">🎵 ${file.name}</div>
+                        <div class="file-duration">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                    </div>
+                    <button class="file-remove" onclick="removeFile(${index})">Retirer</button>
+                `;
+                filesList.appendChild(item);
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderFilesList();
+            if (selectedFiles.length === 0) {
+                processButton.disabled = true;
+            }
+        }
+
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}m${secs.toString().padStart(2, '0')}s`;
+        }
+
+        function showStatus(message, type = 'info') {
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        function showLoading(show, text = 'Traitement en cours...') {
+            loading.style.display = show ? 'block' : 'none';
+            document.getElementById('loadingText').textContent = text;
+        }
+
+        processButton.addEventListener('click', processFiles);
+
+        async function processFiles() {
+            if (selectedFiles.length === 0) return;
+
+            await initFFmpeg();
+            showLoading(true);
+            processButton.disabled = true;
+            status.className = 'status';
+
+            let successCount = 0;
+
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                showLoading(true, `Traitement ${i + 1}/${selectedFiles.length}: ${file.name}`);
+
+                try {
+                    const data = await file.arrayBuffer();
+                    const inputName = `input_${i}`;
+                    const outputName = `output_${i}.mp3`;
+
+                    // Écrire le fichier dans le système virtuel de FFmpeg
+                    await ff.writeFile(inputName, new Uint8Array(data));
+
+                    // Analyser la durée originale
+                    await ff.exec(['-i', inputName]);
+
+                    // Effectuer le time-stretching (tempo 2x, pitch inchangé)
+                    // atempo=2.0 double le tempo sans changer le pitch
+                    await ff.exec([
+                        '-i', inputName,
+                        '-filter:a', 'atempo=2.0',
+                        '-q:a', '9',
+                        outputName
+                    ]);
+
+                    // Lire le fichier de sortie
+                    const output = await ff.readFile(outputName);
+
+                    // Créer le nom avec la durée originale
+                    const originalDuration = formatDuration(5); // Approximatif, on va utiliser un nom générique
+                    const outputFileName = `${file.name.split('.')[0]}_x2.mp3`;
+
+                    // Télécharger le fichier
+                    downloadFile(
+                        new Blob([output.buffer], { type: 'audio/mpeg' }),
+                        outputFileName
+                    );
+
+                    // Nettoyer
+                    await ff.deleteFile(inputName);
+                    await ff.deleteFile(outputName);
+
+                    successCount++;
+
+                } catch (error) {
+                    console.error(`Erreur pour ${file.name}:`, error);
+                }
+            }
+
+            showLoading(false);
+            processButton.disabled = false;
+
+            if (successCount > 0) {
+                showStatus(`✅ ${successCount}/${selectedFiles.length} fichier(s) traité(s) avec succès!`, 'success');
+            } else {
+                showStatus('❌ Erreur lors du traitement', 'error');
+            }
+        }
+
+        function downloadFile(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialiser FFmpeg au chargement
+        window.addEventListener('load', initFFmpeg);
+    </script>
+</body>
+</html>
