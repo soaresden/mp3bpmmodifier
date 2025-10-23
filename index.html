@@ -2,24 +2,17 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Audio Tempo Doubler 🎵</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html, body {
-            height: 100%;
-            width: 100%;
-            overflow-x: hidden;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -32,21 +25,9 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 100%;
             max-width: 700px;
+            width: 100%;
             padding: 25px;
-            animation: slideUp 0.5s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .header {
@@ -63,251 +44,11 @@
             font-size: 1.8em;
             color: #333;
             margin-bottom: 8px;
-            font-weight: 700;
         }
 
         .header p {
             color: #666;
             font-size: 1em;
-            line-height: 1.5;
-        }
-
-        .upload-zone {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 35px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #fafbff;
-            margin-bottom: 25px;
-            min-height: 150px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        .upload-zone:active {
-            border-color: #764ba2;
-            background: #ede9ff;
-            transform: scale(0.98);
-        }
-
-        .upload-zone.dragover {
-            border-color: #764ba2;
-            background: #ede9ff;
-            transform: scale(1.02);
-        }
-
-        .upload-icon {
-            font-size: 3em;
-            margin-bottom: 15px;
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .upload-zone p {
-            color: #666;
-            margin: 8px 0;
-            font-size: 1em;
-            font-weight: 500;
-        }
-
-        .upload-zone .or {
-            color: #999;
-            font-size: 0.9em;
-            margin: 10px 0;
-        }
-
-        .upload-zone .small {
-            color: #999;
-            font-size: 0.85em;
-            margin-top: 8px;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .file-input-button {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 14px 35px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1.05em;
-            transition: all 0.2s ease;
-            border: none;
-            margin-top: 12px;
-            touch-action: manipulation;
-            -webkit-appearance: none;
-            appearance: none;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .file-input-button:active {
-            background: #764ba2;
-            transform: scale(0.95);
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-        }
-
-        .file-input-button:hover {
-            background: #764ba2;
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .files-list {
-            margin-bottom: 25px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .file-item {
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid #667eea;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .file-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .file-name {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 4px;
-            word-break: break-word;
-            font-size: 0.95em;
-        }
-
-        .file-size {
-            color: #999;
-            font-size: 0.85em;
-        }
-
-        .file-remove {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9em;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            touch-action: manipulation;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-
-        .file-remove:active {
-            background: #ff5252;
-            transform: scale(0.9);
-        }
-
-        .process-button {
-            width: 100%;
-            padding: 16px;
-            font-size: 1.1em;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-bottom: 20px;
-            touch-action: manipulation;
-            -webkit-appearance: none;
-            appearance: none;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .process-button:active:not(:disabled) {
-            transform: scale(0.95);
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-        }
-
-        .process-button:hover:not(:disabled) {
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .process-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .status {
-            padding: 14px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: none;
-            font-weight: 500;
-            line-height: 1.5;
-            word-break: break-word;
-        }
-
-        .status.success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            display: block;
-        }
-
-        .status.error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            display: block;
-        }
-
-        .status.info {
-            background: #d1ecf1;
-            border: 1px solid #bee5eb;
-            color: #0c5460;
-            display: block;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            color: #667eea;
-            font-weight: 600;
-            font-size: 1em;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #e0e0e0;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         .info-box {
@@ -318,59 +59,171 @@
             margin-bottom: 20px;
             font-size: 0.95em;
             color: #555;
-            line-height: 1.6;
         }
 
-        .footer {
+        .upload-zone {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px 20px;
             text-align: center;
+            background: #fafbff;
+            margin-bottom: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-zone:hover {
+            border-color: #764ba2;
+            background: #ede9ff;
+        }
+
+        .upload-zone.active {
+            border-color: #764ba2;
+            background: #ede9ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .upload-zone p {
+            color: #666;
+            margin: 10px 0;
+            font-size: 1em;
+            font-weight: 500;
+        }
+
+        .upload-zone .small {
             color: #999;
             font-size: 0.85em;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
-        @media (max-width: 480px) {
-            .container {
-                padding: 18px;
-                border-radius: 15px;
-            }
+        #fileInput {
+            display: none;
+        }
 
-            .header h1 {
-                font-size: 1.5em;
-            }
+        .btn-select {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1em;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
 
-            .header .emoji {
-                font-size: 2em;
-            }
+        .btn-select:hover {
+            background: #764ba2;
+        }
 
-            .upload-zone {
-                padding: 25px 15px;
-                min-height: 120px;
-            }
+        .btn-select:active {
+            transform: scale(0.95);
+        }
 
-            .upload-icon {
-                font-size: 2.5em;
-            }
+        .files-list {
+            margin-bottom: 20px;
+        }
 
-            .file-input-button {
-                padding: 12px 30px;
-                font-size: 1em;
-                margin-top: 10px;
-            }
+        .file-item {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+        }
 
-            .process-button {
-                padding: 14px;
-                font-size: 1em;
-            }
+        .file-name {
+            font-weight: 600;
+            color: #333;
+        }
 
-            .file-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
+        .btn-remove {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
 
-            .file-remove {
-                width: 100%;
-                text-align: center;
-            }
+        .btn-remove:hover {
+            background: #ff5252;
+        }
+
+        .btn-process {
+            width: 100%;
+            padding: 14px;
+            font-size: 1.1em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .btn-process:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-process:hover:not(:disabled) {
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .status {
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            display: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e0e0e0;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -386,176 +239,160 @@
             ✨ La voix reste normale • Vitesse 2x • Export MP3
         </div>
 
-        <div class="upload-zone" id="uploadZone">
-            <div class="upload-icon">📁</div>
-            <p><strong>Appuyez pour sélectionner</strong></p>
-            <p class="or">ou glissez vos fichiers</p>
-            <button class="file-input-button" id="fileButton">📤 Choisir un fichier</button>
-            <div class="small">MP3, WAV, OGG, FLAC, M4A</div>
-            <input type="file" id="fileInput" multiple accept="audio/*">
+        <div id="loadingContainer" style="text-align: center; padding: 40px 20px;">
+            <div class="spinner" style="display: inline-block; margin-bottom: 15px;"></div>
+            <p style="color: #667eea; font-weight: 600; font-size: 1.1em;">Chargement de FFmpeg...</p>
+            <p style="color: #999; font-size: 0.9em; margin-top: 10px;">Cela peut prendre jusqu'à 30 secondes</p>
         </div>
+
+        <div class="upload-zone" id="dropZone" style="display: none;">
+            <div class="upload-icon">📁</div>
+            <p><strong>Cliquez pour sélectionner</strong></p>
+            <p>ou glissez vos fichiers</p>
+            <button class="btn-select" onclick="document.getElementById('fileInput').click();">Choisir un fichier</button>
+            <div class="small">MP3, WAV, OGG, FLAC, M4A</div>
+        </div>
+
+        <input type="file" id="fileInput" multiple accept="audio/*">
 
         <div class="files-list" id="filesList"></div>
 
-        <button class="process-button" id="processButton" disabled>
-            ⚡ Traiter
-        </button>
+        <button class="btn-process" id="processBtn" disabled>⚡ Traiter</button>
 
         <div class="loading" id="loading">
-            <div class="spinner"></div>
+            <span class="spinner"></span>
             <span id="loadingText">Traitement...</span>
         </div>
 
         <div class="status" id="status"></div>
-
-        <div class="footer">
-            Traitement 100% local dans le navigateur
-        </div>
     </div>
 
-    <script type="module">
-        import { FFmpeg, fetchFile } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/+esm';
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/FFmpeg.js"></script>
+    <script>
+        const { FFmpeg, fetchFile } = FFmpeg;
 
-        let ffmpeg = null;
+        let ffmpeg;
         let ffLoaded = false;
-        let selectedFiles = [];
-        
-        const uploadZone = document.getElementById('uploadZone');
+        let files = [];
+
+        const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
-        const fileButton = document.getElementById('fileButton');
         const filesList = document.getElementById('filesList');
-        const processButton = document.getElementById('processButton');
+        const processBtn = document.getElementById('processBtn');
         const status = document.getElementById('status');
         const loading = document.getElementById('loading');
+        const loadingContainer = document.getElementById('loadingContainer');
 
         // Initialiser FFmpeg
         async function initFFmpeg() {
             if (ffLoaded) return true;
-            
+
             try {
-                ffmpeg = FFmpeg.createFFmpeg({ 
-                    log: true,
-                    corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/ffmpeg-core.js'
-                });
-                
-                if (ffmpeg.isLoaded()) {
-                    ffLoaded = true;
-                    return true;
-                }
-                
-                console.log('Chargement FFmpeg...');
+                ffmpeg = new FFmpeg.FFmpeg();
                 await ffmpeg.load();
                 ffLoaded = true;
-                processButton.disabled = false;
-                console.log('FFmpeg chargé ✓');
+                console.log('✓ FFmpeg chargé');
+                
+                // Cacher le loading, afficher le formulaire
+                loadingContainer.style.display = 'none';
+                dropZone.style.display = 'block';
+                processBtn.disabled = false;
+                
                 return true;
-            } catch (e) {
-                showStatus('⚠️ Erreur FFmpeg: ' + e.message, 'error');
-                console.error('Erreur FFmpeg:', e);
+            } catch (err) {
+                console.error('Erreur FFmpeg:', err);
+                loadingContainer.innerHTML = '<p style="color: red; font-weight: 600;">❌ Erreur de chargement</p>';
+                showStatus('Erreur FFmpeg: ' + err.message, 'error');
                 return false;
             }
         }
 
-        // Gestionnaires d'upload
-        fileButton.addEventListener('click', (e) => {
+        // Drag & drop
+        dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
-            fileInput.click();
+            dropZone.classList.add('active');
         });
 
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('active');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // File input change
         fileInput.addEventListener('change', (e) => {
-            handleFiles(Array.from(e.target.files));
+            handleFiles(e.target.files);
         });
 
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.classList.add('dragover');
-        });
-
-        uploadZone.addEventListener('dragleave', () => {
-            uploadZone.classList.remove('dragover');
-        });
-
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-            handleFiles(Array.from(e.dataTransfer.files));
-        });
-
-        function handleFiles(files) {
-            selectedFiles = Array.from(files).filter(f => {
+        function handleFiles(selectedFiles) {
+            files = Array.from(selectedFiles).filter(f => {
                 const ext = f.name.split('.').pop().toLowerCase();
                 return ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac'].includes(ext);
             });
 
-            if (selectedFiles.length === 0) {
-                showStatus('❌ Aucun fichier audio valide', 'error');
+            if (files.length === 0) {
+                showStatus('Aucun fichier audio valide', 'error');
                 return;
             }
 
-            renderFilesList();
-            processButton.disabled = !ffLoaded;
-            status.className = 'status';
+            renderFiles();
+            processBtn.disabled = false;
         }
 
-        function renderFilesList() {
+        function renderFiles() {
             filesList.innerHTML = '';
-            selectedFiles.forEach((file, index) => {
+            files.forEach((file, idx) => {
                 const item = document.createElement('div');
                 item.className = 'file-item';
-                const sizeMB = (file.size / 1024 / 1024).toFixed(2);
                 item.innerHTML = `
-                    <div class="file-info">
-                        <div class="file-name">🎵 ${file.name}</div>
-                        <div class="file-size">${sizeMB} MB</div>
-                    </div>
-                    <button class="file-remove" onclick="window.removeFile(${index})">✕ Retirer</button>
+                    <div class="file-name">🎵 ${file.name}</div>
+                    <button class="btn-remove" onclick="removeFile(${idx})">Retirer</button>
                 `;
                 filesList.appendChild(item);
             });
         }
 
-        window.removeFile = function(index) {
-            selectedFiles.splice(index, 1);
-            renderFilesList();
-            if (selectedFiles.length === 0) {
-                processButton.disabled = true;
-            }
+        window.removeFile = function(idx) {
+            files.splice(idx, 1);
+            renderFiles();
+            if (files.length === 0) processBtn.disabled = true;
         };
 
-        function showStatus(message, type = 'info') {
-            status.textContent = message;
+        function showStatus(msg, type) {
+            status.textContent = msg;
             status.className = `status ${type}`;
         }
 
-        function showLoading(show, text = 'Traitement...') {
+        function showLoading(show, msg = 'Traitement...') {
             loading.style.display = show ? 'block' : 'none';
-            document.getElementById('loadingText').textContent = text;
+            if (msg) document.getElementById('loadingText').textContent = msg;
         }
 
-        processButton.addEventListener('click', processFiles);
+        processBtn.addEventListener('click', processFiles);
 
         async function processFiles() {
-            if (selectedFiles.length === 0 || !ffLoaded || !ffmpeg) return;
+            if (files.length === 0 || !ffLoaded) return;
 
             showLoading(true, 'Initialisation...');
-            processButton.disabled = true;
-            status.className = 'status';
+            processBtn.disabled = true;
 
-            let successCount = 0;
+            let ok = 0;
 
-            for (let i = 0; i < selectedFiles.length; i++) {
-                const file = selectedFiles[i];
-                showLoading(true, `Traitement ${i + 1}/${selectedFiles.length}...`);
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                showLoading(true, `Traitement ${i + 1}/${files.length}...`);
 
                 try {
-                    const ext = file.name.split('.').pop().toLowerCase();
-                    const inputName = `input_${i}.${ext}`;
-                    const outputName = `output_${i}.mp3`;
+                    const ext = file.name.split('.').pop();
+                    const inputName = `in_${i}.${ext}`;
+                    const outputName = `out_${i}.mp3`;
 
-                    // Écrire le fichier
                     await ffmpeg.FS('writeFile', inputName, await fetchFile(file));
 
-                    // Time-stretching: atempo=2.0
                     await ffmpeg.run(
                         '-i', inputName,
                         '-filter:a', 'atempo=2.0',
@@ -563,67 +400,36 @@
                         outputName
                     );
 
-                    // Lire le résultat
                     const data = ffmpeg.FS('readFile', outputName);
+                    const blob = new Blob([data.buffer], { type: 'audio/mpeg' });
 
-                    // Télécharger
-                    const outputFileName = `${file.name.split('.')[0]}_x2.mp3`;
-                    downloadFile(
-                        new Blob([data.buffer], { type: 'audio/mpeg' }),
-                        outputFileName
-                    );
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${file.name.split('.')[0]}_x2.mp3`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
 
-                    // Nettoyer
                     ffmpeg.FS('unlink', inputName);
                     ffmpeg.FS('unlink', outputName);
 
-                    successCount++;
-
-                } catch (error) {
-                    console.error(`Erreur ${file.name}:`, error);
+                    ok++;
+                } catch (err) {
+                    console.error(err);
                 }
             }
 
             showLoading(false);
-            processButton.disabled = false;
-
-            if (successCount > 0) {
-                showStatus(`✅ ${successCount}/${selectedFiles.length} fichier(s) traité(s)`, 'success');
-            } else {
-                showStatus('❌ Erreur lors du traitement', 'error');
-            }
+            processBtn.disabled = false;
+            showStatus(`✅ ${ok}/${files.length} fichier(s) traité(s)`, 'success');
         }
 
-        function downloadFile(blob, filename) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }
-
-        // Initialiser FFmpeg au chargement
-        async function startup() {
-            showLoading(true, 'Chargement de FFmpeg (~30 secondes)...');
+        // Init FFmpeg on load
+        window.addEventListener('load', async () => {
             await initFFmpeg();
-            if (ffLoaded) {
-                showLoading(false);
-            } else {
-                showLoading(true, 'Nouvelle tentative...');
-                await new Promise(r => setTimeout(r, 2000));
-                await initFFmpeg();
-                showLoading(false);
-            }
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', startup);
-        } else {
-            startup();
-        }
+        });
     </script>
 </body>
 </html>
