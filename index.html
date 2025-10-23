@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Audio Tempo Doubler 🎵</title>
-    <script async src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/FFmpeg.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/FFmpeg.js"></script>
     <style>
         * {
             margin: 0;
@@ -416,6 +416,7 @@
 
     <script>
         let ff = null;
+        let ffLoaded = false;
         let selectedFiles = [];
         const uploadZone = document.getElementById('uploadZone');
         const fileInput = document.getElementById('fileInput');
@@ -427,17 +428,42 @@
 
         // Initialiser FFmpeg
         async function initFFmpeg() {
-            if (ff && ff.isLoaded()) return;
+            if (ffLoaded) return true;
             
             try {
+                // Attendre que FFmpeg soit disponible globalement
+                let attempts = 0;
+                while (!window.FFmpeg && attempts < 30) {
+                    await new Promise(r => setTimeout(r, 500));
+                    attempts++;
+                }
+                
+                if (!window.FFmpeg) {
+                    throw new Error('FFmpeg script n\'a pas pu charger');
+                }
+
                 const { FFmpeg, fetchFile } = window.FFmpeg;
                 ff = new FFmpeg.FFmpeg();
+                
+                console.log('Chargement FFmpeg...');
                 await ff.load();
+                ffLoaded = true;
+                processButton.disabled = false;
                 console.log('FFmpeg chargé ✓');
+                return true;
             } catch (e) {
-                showStatus('⚠️ Erreur de chargement', 'error');
-                console.error(e);
+                showStatus('⚠️ Erreur FFmpeg: ' + e.message, 'error');
+                console.error('Erreur FFmpeg:', e);
+                return false;
             }
+        }
+        
+        async function waitForFFmpeg(timeout = 60000) {
+            const startTime = Date.now();
+            while (!ffLoaded && (Date.now() - startTime) < timeout) {
+                await new Promise(r => setTimeout(r, 100));
+            }
+            return ffLoaded;
         }
 
         // Gestionnaires d'upload
@@ -477,7 +503,8 @@
             }
 
             renderFilesList();
-            processButton.disabled = false;
+            // Activer le bouton seulement si FFmpeg est prêt
+            processButton.disabled = !ffLoaded;
             status.className = 'status';
         }
 
@@ -496,6 +523,9 @@
                 `;
                 filesList.appendChild(item);
             });
+            
+            // Activer le bouton seulement si FFmpeg est prêt ET qu'il y a des fichiers
+            processButton.disabled = !ffLoaded || selectedFiles.length === 0;
         }
 
         window.removeFile = function(index) {
@@ -521,10 +551,25 @@
         async function processFiles() {
             if (selectedFiles.length === 0) return;
 
-            await initFFmpeg();
+            processButton.disabled = true;
+            showLoading(true, 'Attente de FFmpeg...');
             
-            if (!ff || !ff.isLoaded()) {
-                showStatus('❌ FFmpeg non prêt', 'error');
+            // Vérifier si FFmpeg est chargé
+            if (!ffLoaded) {
+                showLoading(true, 'FFmpeg en cours de chargement...');
+                const loaded = await waitForFFmpeg();
+                if (!loaded) {
+                    showStatus('❌ FFmpeg n\'a pas pu charger', 'error');
+                    showLoading(false);
+                    processButton.disabled = false;
+                    return;
+                }
+            }
+            
+            if (!ff) {
+                showStatus('❌ FFmpeg non disponible', 'error');
+                showLoading(false);
+                processButton.disabled = false;
                 return;
             }
 
@@ -598,11 +643,26 @@
         }
 
         // Initialiser FFmpeg au chargement
-        window.addEventListener('load', async () => {
-            showLoading(true, 'Chargement...');
-            await initFFmpeg();
-            showLoading(false);
-        });
+        async function startFFmpeg() {
+            showLoading(true, 'Chargement de FFmpeg (30 secondes)...');
+            const success = await initFFmpeg();
+            if (success) {
+                showLoading(false);
+            } else {
+                showLoading(true, 'Nouvelle tentative...');
+                await new Promise(r => setTimeout(r, 2000));
+                const retry = await initFFmpeg();
+                showLoading(false);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startFFmpeg);
+        } else {
+            startFFmpeg();
+        }
+        
+        window.addEventListener('load', startFFmpeg);
     </script>
 </body>
 </html>
