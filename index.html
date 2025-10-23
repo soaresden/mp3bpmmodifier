@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Audio Tempo Doubler 🎵</title>
-    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/FFmpeg.js"></script>
     <style>
         * {
             margin: 0;
@@ -414,10 +413,13 @@
         </div>
     </div>
 
-    <script>
-        let ff = null;
+    <script type="module">
+        import { FFmpeg, fetchFile } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/+esm';
+
+        let ffmpeg = null;
         let ffLoaded = false;
         let selectedFiles = [];
+        
         const uploadZone = document.getElementById('uploadZone');
         const fileInput = document.getElementById('fileInput');
         const fileButton = document.getElementById('fileButton');
@@ -431,22 +433,18 @@
             if (ffLoaded) return true;
             
             try {
-                // Attendre que FFmpeg soit disponible globalement
-                let attempts = 0;
-                while (!window.FFmpeg && attempts < 30) {
-                    await new Promise(r => setTimeout(r, 500));
-                    attempts++;
-                }
+                ffmpeg = FFmpeg.createFFmpeg({ 
+                    log: true,
+                    corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/ffmpeg-core.js'
+                });
                 
-                if (!window.FFmpeg) {
-                    throw new Error('FFmpeg script n\'a pas pu charger');
+                if (ffmpeg.isLoaded()) {
+                    ffLoaded = true;
+                    return true;
                 }
-
-                const { FFmpeg, fetchFile } = window.FFmpeg;
-                ff = new FFmpeg.FFmpeg();
                 
                 console.log('Chargement FFmpeg...');
-                await ff.load();
+                await ffmpeg.load();
                 ffLoaded = true;
                 processButton.disabled = false;
                 console.log('FFmpeg chargé ✓');
@@ -456,14 +454,6 @@
                 console.error('Erreur FFmpeg:', e);
                 return false;
             }
-        }
-        
-        async function waitForFFmpeg(timeout = 60000) {
-            const startTime = Date.now();
-            while (!ffLoaded && (Date.now() - startTime) < timeout) {
-                await new Promise(r => setTimeout(r, 100));
-            }
-            return ffLoaded;
         }
 
         // Gestionnaires d'upload
@@ -503,7 +493,6 @@
             }
 
             renderFilesList();
-            // Activer le bouton seulement si FFmpeg est prêt
             processButton.disabled = !ffLoaded;
             status.className = 'status';
         }
@@ -519,13 +508,10 @@
                         <div class="file-name">🎵 ${file.name}</div>
                         <div class="file-size">${sizeMB} MB</div>
                     </div>
-                    <button class="file-remove" onclick="removeFile(${index})">✕ Retirer</button>
+                    <button class="file-remove" onclick="window.removeFile(${index})">✕ Retirer</button>
                 `;
                 filesList.appendChild(item);
             });
-            
-            // Activer le bouton seulement si FFmpeg est prêt ET qu'il y a des fichiers
-            processButton.disabled = !ffLoaded || selectedFiles.length === 0;
         }
 
         window.removeFile = function(index) {
@@ -549,29 +535,7 @@
         processButton.addEventListener('click', processFiles);
 
         async function processFiles() {
-            if (selectedFiles.length === 0) return;
-
-            processButton.disabled = true;
-            showLoading(true, 'Attente de FFmpeg...');
-            
-            // Vérifier si FFmpeg est chargé
-            if (!ffLoaded) {
-                showLoading(true, 'FFmpeg en cours de chargement...');
-                const loaded = await waitForFFmpeg();
-                if (!loaded) {
-                    showStatus('❌ FFmpeg n\'a pas pu charger', 'error');
-                    showLoading(false);
-                    processButton.disabled = false;
-                    return;
-                }
-            }
-            
-            if (!ff) {
-                showStatus('❌ FFmpeg non disponible', 'error');
-                showLoading(false);
-                processButton.disabled = false;
-                return;
-            }
+            if (selectedFiles.length === 0 || !ffLoaded || !ffmpeg) return;
 
             showLoading(true, 'Initialisation...');
             processButton.disabled = true;
@@ -584,35 +548,34 @@
                 showLoading(true, `Traitement ${i + 1}/${selectedFiles.length}...`);
 
                 try {
-                    const data = await file.arrayBuffer();
                     const ext = file.name.split('.').pop().toLowerCase();
                     const inputName = `input_${i}.${ext}`;
                     const outputName = `output_${i}.mp3`;
 
                     // Écrire le fichier
-                    await ff.writeFile(inputName, new Uint8Array(data));
+                    await ffmpeg.FS('writeFile', inputName, await fetchFile(file));
 
-                    // Time-stretching: atempo=2.0 (2x plus rapide, pitch inchangé)
-                    await ff.exec([
+                    // Time-stretching: atempo=2.0
+                    await ffmpeg.run(
                         '-i', inputName,
                         '-filter:a', 'atempo=2.0',
                         '-b:a', '320k',
                         outputName
-                    ]);
+                    );
 
                     // Lire le résultat
-                    const output = await ff.readFile(outputName);
+                    const data = ffmpeg.FS('readFile', outputName);
 
                     // Télécharger
                     const outputFileName = `${file.name.split('.')[0]}_x2.mp3`;
                     downloadFile(
-                        new Blob([output.buffer], { type: 'audio/mpeg' }),
+                        new Blob([data.buffer], { type: 'audio/mpeg' }),
                         outputFileName
                     );
 
                     // Nettoyer
-                    await ff.deleteFile(inputName);
-                    await ff.deleteFile(outputName);
+                    ffmpeg.FS('unlink', inputName);
+                    ffmpeg.FS('unlink', outputName);
 
                     successCount++;
 
@@ -643,26 +606,24 @@
         }
 
         // Initialiser FFmpeg au chargement
-        async function startFFmpeg() {
-            showLoading(true, 'Chargement de FFmpeg (30 secondes)...');
-            const success = await initFFmpeg();
-            if (success) {
+        async function startup() {
+            showLoading(true, 'Chargement de FFmpeg (~30 secondes)...');
+            await initFFmpeg();
+            if (ffLoaded) {
                 showLoading(false);
             } else {
                 showLoading(true, 'Nouvelle tentative...');
                 await new Promise(r => setTimeout(r, 2000));
-                const retry = await initFFmpeg();
+                await initFFmpeg();
                 showLoading(false);
             }
         }
 
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', startFFmpeg);
+            document.addEventListener('DOMContentLoaded', startup);
         } else {
-            startFFmpeg();
+            startup();
         }
-        
-        window.addEventListener('load', startFFmpeg);
     </script>
 </body>
 </html>
