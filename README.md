@@ -43,27 +43,6 @@ That's it! 🎉
 
 ## 🌐 Host on GitHub Pages
 
-### Option 1: Personal repo
-
-1. Create a `username.github.io` repo
-2. Put `audio-tempo-doubler.html` at the root
-3. Access via: `https://username.github.io/audio-tempo-doubler.html`
-
-### Option 2: `gh-pages` branch
-
-1. Create a `gh-pages` branch in your existing repo
-2. Put the file in that branch
-3. Go to **Settings → Pages** and select the `gh-pages` branch
-4. Access via: `https://username.github.io/my-repo/audio-tempo-doubler.html`
-
-### Option 3: Netlify/Vercel
-
-1. Connect your GitHub repo
-2. Deploy the file
-3. Get your URL
-
-It's free and instant! 🚀
-
 ## 🔧 Technology
 
 - **FFmpeg.wasm** - Audio processing via WebAssembly
